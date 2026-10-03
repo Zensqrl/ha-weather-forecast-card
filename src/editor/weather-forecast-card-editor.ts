@@ -29,6 +29,7 @@ import {
   getWeatherUnit,
   WeatherEntity,
 } from "../data/weather";
+import { supportsEntityNames } from "../entity-name";
 
 // Device class mapping for attribute entity selectors
 const ATTRIBUTE_DEVICE_CLASS_MAP: Record<
@@ -163,9 +164,9 @@ export class WeatherForecastCardEditor
   }
 
   private _primarySchema = memoizeOne(
-    (localize: LocalizeFunc): HaFormSchema[] =>
+    (localize: LocalizeFunc, structuredName: boolean): HaFormSchema[] =>
       [
-        ...this._genericSchema(localize),
+        ...this._genericSchema(localize, structuredName),
         ...this._currentWeatherSchema(localize),
         ...this._forecastSchema(localize),
       ] as const
@@ -183,7 +184,10 @@ export class WeatherForecastCardEditor
       ] as const
   );
 
-  private _genericSchema = (localize: LocalizeFunc): HaFormSchema[] =>
+  private _genericSchema = (
+    localize: LocalizeFunc,
+    structuredName: boolean
+  ): HaFormSchema[] =>
     [
       {
         name: "entity",
@@ -193,7 +197,11 @@ export class WeatherForecastCardEditor
       },
       {
         name: "name",
-        selector: { text: {} },
+        // The entity name picker resolves the name against the entity, device,
+        // area and floor names, so it only works on versions that can resolve
+        // one. Older versions keep the plain text field.
+        selector: structuredName ? { entity_name: {} } : { text: {} },
+        context: structuredName ? { entity: "entity" } : undefined,
         optional: true,
       },
       {
@@ -677,7 +685,10 @@ export class WeatherForecastCardEditor
       : this.hass.config.unit_system.length === "km"
         ? "mm"
         : "in";
-    const primarySchema = this._primarySchema(this.localize.bind(this));
+    const primarySchema = this._primarySchema(
+      this.localize.bind(this),
+      supportsEntityNames(this.hass)
+    );
     const precipitationChartMaxSchema =
       this._precipitationChartMaxSchema(precipitationUnit);
     const secondarySchema = this._secondarySchema(
@@ -697,7 +708,10 @@ export class WeatherForecastCardEditor
       </ha-form>
       <section class="precipitation-chart-max">
         <h3>Precipitation Chart Max Value</h3>
-        <p>The chart upper bound used for displaying precipitation forecast data when Forecast Display Mode is set to Chart</p>
+        <p>
+          The chart upper bound used for displaying precipitation forecast data
+          when Forecast Display Mode is set to Chart
+        </p>
         <ha-form
           .hass=${this.hass}
           .data=${data}
@@ -814,10 +828,7 @@ export class WeatherForecastCardEditor
     this._commitCustomAttributes(custom);
   };
 
-  private _customAttributeChanged = (
-    index: number,
-    ev: CustomEvent
-  ): void => {
+  private _customAttributeChanged = (index: number, ev: CustomEvent): void => {
     ev.stopPropagation();
     const custom = extractCustomAttributes(
       this._config.current?.show_attributes
@@ -1130,7 +1141,11 @@ export class WeatherForecastCardEditor
         );
         newConfig.current.show_attributes = buildShowAttributes(
           newConfig.current.show_attributes,
-          { entity: entityOverrides, label: labelOverrides, icon: iconOverrides },
+          {
+            entity: entityOverrides,
+            label: labelOverrides,
+            icon: iconOverrides,
+          },
           customItems
         );
       }

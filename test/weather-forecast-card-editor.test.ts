@@ -78,7 +78,9 @@ describe("extractCustomAttributes", () => {
     });
     // known items must NOT appear
     expect(result.some((c) => c.name === "humidity")).toBe(false);
-    expect(result.some((c) => (c as { name?: string }).name === "wind_speed")).toBe(false);
+    expect(
+      result.some((c) => (c as { name?: string }).name === "wind_speed")
+    ).toBe(false);
   });
 
   it("wraps unknown string items as objects with name", () => {
@@ -203,9 +205,25 @@ describe("precipitation chart maximum editor", () => {
     expect(section?.querySelector("h3")?.textContent).toBe(
       "Precipitation Chart Max Value"
     );
-    expect(section?.querySelector("p")?.textContent).toBe(
-      "The upper bound used when displaying precipitation forecast data"
+    expect(
+      section?.querySelector("p")?.textContent?.replace(/\s+/g, " ").trim()
+    ).toBe(
+      "The chart upper bound used for displaying precipitation forecast data when Forecast Display Mode is set to Chart"
     );
+  });
+
+  it("preserves upstream composed-name selectors when supported", async () => {
+    const editor = await createEditor("mm");
+    editor.hass.config.version = "2026.4.0";
+    editor.hass.formatEntityName = () => "Garden";
+    editor.requestUpdate();
+    await editor.updateComplete;
+    const form = editor.shadowRoot!.querySelector("ha-form") as HTMLElement & {
+      schema: Array<{ name: string; selector?: unknown }>;
+    };
+    expect(
+      form.schema.find((field) => field.name === "name")?.selector
+    ).toEqual({ entity_name: {} });
   });
 
   it.each([
@@ -265,7 +283,10 @@ describe("buildShowAttributes", () => {
     );
 
     expect(Array.isArray(result)).toBe(true);
-    const arr = result as (string | { name?: string; entity?: string; label?: string; icon?: string })[];
+    const arr = result as (
+      | string
+      | { name?: string; entity?: string; label?: string; icon?: string }
+    )[];
 
     // wind_speed has no overrides → remains a string
     expect(arr).toContain("wind_speed");

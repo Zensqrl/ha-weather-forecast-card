@@ -73,7 +73,7 @@ resources:
 | :----------------------- | :---------------- | :----------- | :-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `type`                   | `string`          | **Required** | `custom:weather-forecast-card`                                                                                                                                                    |
 | `entity`                 | `string`          | **Required** | The weather entity id (e.g., `weather.home`).                                                                                                                                     |
-| `name`                   | `string`          | optional     | Custom name to display. Defaults to the entity's friendly name.                                                                                                                   |
+| `name`                   | `string`/`array`  | optional     | Name to display. Defaults to the entity's own name. Can also be a list of name parts to compose it from, see [Name](#name).                                                       |
 | `show_current`           | `boolean`         | `true`       | Show current weather conditions.                                                                                                                                                  |
 | `show_forecast`          | `boolean`         | `true`       | Show forecast section.                                                                                                                                                            |
 | `default_forecast`       | `string`          | `daily`      | Default forecast to view (`daily` or `hourly`).                                                                                                                                   |
@@ -87,6 +87,30 @@ resources:
 | `tap_action`             | `object`          | optional     | Defines the type of action to perform on tap for the main card. Action defaults to `more-info`. See [Home Assistant Actions](https://www.home-assistant.io/dashboards/actions/).  |
 | `hold_action`            | `object`          | optional     | Defines the type of action to perform on hold for the main card. See [Home Assistant Actions](https://www.home-assistant.io/dashboards/actions/).                                 |
 | `double_tap_action`      | `object`          | optional     | Defines the type of action to perform on double click for the main card. See [Home Assistant Actions](https://www.home-assistant.io/dashboards/actions/).                         |
+
+### Name
+
+By default the card shows the weather entity's own name. Set `name` to a string to override it:
+
+```yaml
+type: custom:weather-forecast-card
+entity: weather.home
+name: Outside
+```
+
+On Home Assistant 2026.4 and later, `name` can also be a list of parts, which the card resolves against the entity's device, area and floor. This is the same naming Home Assistant's built-in cards use, so a renamed device or area is picked up automatically:
+
+```yaml
+type: custom:weather-forecast-card
+entity: weather.home
+name:
+  - type: area
+  - type: text
+    text: "-"
+  - type: entity
+```
+
+Each part is one of `entity`, `device`, `area`, `floor`, or `text` with a literal `text` value. The visual editor offers a picker for this. Earlier Home Assistant versions cannot resolve a list and fall back to the entity's friendly name.
 
 ### Current Object
 
@@ -207,8 +231,8 @@ current:
 | `hourly_slots`            | number  | optional                        | Limit the number of hourly forecast entries to show. Defaults to unlimited. Value must be greater than 0.                                                                                                                                                                             |
 | `daily_slots`             | number  | optional                        | Limit the number of daily forecast entries to show. Defaults to unlimited. Value must be greater than 0.                                                                                                                                                                              |
 | `mode`                    | string  | `simple`                        | Forecast display mode. `simple`: Horizontal scrollable list of forecast entries. `chart`: Visualize temperature and precipitation trends on a line/bar chart.                                                                                                                         |
-| `precipitation_chart_max_daily`  | number  | `20 mm` / `0.8 in`              | Suggested upper bound for precipitation in daily and twice-daily forecast charts. The value uses the weather entity's precipitation unit.                                                                                                                                           |
-| `precipitation_chart_max_hourly` | number  | `8 mm` / `0.3 in`               | Suggested upper bound for precipitation in hourly forecast charts. The value uses the weather entity's precipitation unit.                                                                                                                                                          |
+| `precipitation_chart_max_daily`  | number  | `20 mm` / `0.8 in`              | Suggested upper bound for precipitation in daily and twice-daily forecast charts. The value must be a finite number greater than 0 and uses the weather entity's precipitation unit. The axis can expand beyond this bound for heavier precipitation.                                                                                                                                           |
+| `precipitation_chart_max_hourly` | number  | `8 mm` / `0.3 in`               | Suggested upper bound for precipitation in hourly forecast charts. The value must be a finite number greater than 0 and uses the weather entity's precipitation unit. The axis can expand beyond this bound for heavier precipitation.                                                                                                                                                          |
 | `scroll_to_selected`      | boolean | `true`                          | Automatically scrolls to the first hourly forecast of the selected date when switching to hourly view, and returns to the first daily entry when switching back.                                                                                                                      |
 | `show_sun_times`          | boolean | `true`                          | Displays sunrise and sunset times in the hourly forecast, and uses specific icons to visualize clear night conditions.                                                                                                                                                                |
 | `temperature_precision`   | number  | optional                        | Number of decimal places to display for temperature values (0-2). Applies to forecast temperatures shown in `chart` mode. Due to the layout limitations, this setting is not affecting `simple` mode which uses fixed precision of `0`.                                               |

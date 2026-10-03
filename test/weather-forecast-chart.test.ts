@@ -140,6 +140,20 @@ describe("weather-forecast-card chart", () => {
     expect(yPrecip.suggestedMax).toBe(35);
   });
 
+  it.each([0.01, 0.1, 1000000])(
+    "should accept positive finite precipitation bound %s",
+    async (value) => {
+      const { chart: configuredChart } = await createCardFixture({
+        forecast: { precipitation_chart_max_daily: value },
+      });
+      expect(
+        (configuredChart.options.scales?.yPrecip as { suggestedMax?: number })
+          .suggestedMax
+      ).toBe(value);
+      expect(configuredChart.options.scales?.yPrecip).not.toHaveProperty("max");
+    }
+  );
+
   it("should update the precipitation chart maximum when config changes", async () => {
     card.setConfig({
       type: "custom:weather-forecast-card",

@@ -354,6 +354,9 @@ describe("weather-forecast-card", () => {
       ["precipitation_chart_max_daily", 0],
       ["precipitation_chart_max_hourly", -1],
       ["precipitation_chart_max_daily", Number.NaN],
+      ["precipitation_chart_max_daily", Infinity],
+      ["precipitation_chart_max_hourly", -Infinity],
+      ["precipitation_chart_max_hourly", "10"],
     ] as const)("should reject invalid %s values", (setting, value) => {
       const config = {
         type: "custom:weather-forecast-card",
