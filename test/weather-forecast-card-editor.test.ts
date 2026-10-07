@@ -204,7 +204,7 @@ describe("precipitation chart maximum editor", () => {
       "Precipitation Chart Max Value"
     );
     expect(section?.querySelector("p")?.textContent).toBe(
-      "The upper bound used when displaying precipitation forecast data"
+      "The chart upper bound used for displaying precipitation forecast data when Forecast Display Mode is set to Chart"
     );
   });
 
