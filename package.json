@@ -33,7 +33,7 @@
     "build:debug": "parcel build --target module --no-optimize",
     "clean": "rm -rf ./dist/ ./.parcel-cache",
     "demo": "parcel serve demo/index.html demo/background.png",
-    "lint": "eslint 'src/**/*.ts'",
+    "lint": "eslint \"src/**/*.ts\"",
     "test": "vitest run",
     "test:watch": "vitest watch"
   },
